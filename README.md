@@ -276,18 +276,18 @@ Navigate to http://localhost:3000 in your browser
 ---
 
 ## Mint and Load Tokens
-// Load accounts
+### Load accounts
 const [deployer, user] = await ethers.getSigners()
 
-// Load tokens
+### Load tokens
 const TKA = await ethers.getContractAt("MockERC20", "TKA_Addr")
 const TKB = await ethers.getContractAt("MockERC20", "TKB_Addr")
 
-// MINT tokens to deployer first
+### MINT tokens to deployer first
 await TKA.mint(deployer.address, ethers.parseUnits("1000000", 18))
 await TKB.mint(deployer.address, ethers.parseUnits("1000000", 18))
 
-// NOW transfer tokens to user
+### NOW transfer tokens to user
 await TKA.transfer(user.address, ethers.parseUnits("1000", 18))
 await TKB.transfer(user.address, ethers.parseUnits("1000", 18))
 
