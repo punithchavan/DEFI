@@ -2,7 +2,7 @@
 
 A production-ready decentralized lending protocol built with Hardhat/Solidity. Supports **multiple assets**, **cross-collateral borrowing**, **dynamic interest rates pegged to real-world repo rates**, and an **AI-powered RAG assistant** using Mistral-7B for user guidance.
 
-[![GitHub](https://img.shields.io/badge/GitHub-Dr--Kitz28%2Fmini--defi-blue?logo=github)](https://github.com/Dr-Kitz28/mini-defi)
+
 
 ---
 
@@ -274,6 +274,22 @@ Navigate to http://localhost:3000 in your browser
 3. Click "Connect Wallet" in the dashboard
 
 ---
+
+## Mint and Load Tokens
+// Load accounts
+const [deployer, user] = await ethers.getSigners()
+
+// Load tokens
+const TKA = await ethers.getContractAt("MockERC20", "TKA_Addr")
+const TKB = await ethers.getContractAt("MockERC20", "TKB_Addr")
+
+// MINT tokens to deployer first
+await TKA.mint(deployer.address, ethers.parseUnits("1000000", 18))
+await TKB.mint(deployer.address, ethers.parseUnits("1000000", 18))
+
+// NOW transfer tokens to user
+await TKA.transfer(user.address, ethers.parseUnits("1000", 18))
+await TKB.transfer(user.address, ethers.parseUnits("1000", 18))
 
 ## Architecture
 
