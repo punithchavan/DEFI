@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini DeFi | Multi-Asset Lending Platform</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal-overlay" style="display: none;">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>Welcome to Mini DeFi</h2>
+          <button class="modal-close" id="help-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-section">
+            <h3>Getting Started</h3>
+            <p>Mini DeFi is a multi-asset lending platform supporting thousands of assets. You can deposit assets to earn interest, borrow against your collateral, and manage your portfolio with advanced batch operations.</p>
+          </div>
+          
+          <div class="help-steps">
+            <div class="help-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>Connect Your Wallet</h4>
+                <p>Click "Connect Wallet" and approve the connection in MetaMask.</p>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Browse Assets</h4>
+                <p>Use the search and filters to find assets. Click assets to add them to your selection basket.</p>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Set Proportions</h4>
+                <p>In the Operation Panel, set the percentage allocation for each selected asset.</p>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>Execute Operations</h4>
+                <p>Choose an operation (Deposit, Withdraw, Borrow, Repay, Liquidate) and execute with your proportions.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="help-section">
+            <h3>Key Concepts</h3>
+            <ul class="help-list">
+              <li><strong>Health Factor:</strong> Ratio of collateral to debt. Below 1.0 means liquidation risk.</li>
+              <li><strong>Collateral Factor:</strong> Max % of deposit value you can borrow against.</li>
+              <li><strong>Batch Operations:</strong> Execute operations across multiple assets at once.</li>
+              <li><strong>Proportions:</strong> Distribute your operation amount across selected assets.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <label class="checkbox-label">
+            <input type="checkbox" id="dont-show-again" />
+            <span>Don't show this again</span>
+          </label>
+          <button class="btn btn-primary" id="help-got-it">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Chat Modal -->
+    <div id="chat-modal" class="modal-overlay" style="display: none;">
+      <div class="modal modal-chat">
+        <div class="modal-header">
+          <h2>AI Assistant <span style="font-size: 0.7em; color: var(--color-text-muted);">(Powered by OpenAI)</span></h2>
+          <button class="modal-close" id="chat-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-message assistant">
+              <div class="message-avatar">AI</div>
+              <div class="message-content">
+                <p>Hello! I'm your DeFi assistant powered by OpenAI. I can help you with:</p>
+                <ul>
+                  <li>Understanding lending pool operations</li>
+                  <li>Explaining health factors and liquidation</li>
+                  <li>Guiding you through deposits and borrows</li>
+                  <li>Answering questions about specific assets</li>
+                </ul>
+                <p>What would you like to know?</p>
+              </div>
+            </div>
+          </div>
+          <details class="chat-api-settings" id="chat-api-settings">
+            <summary class="api-settings-toggle">Advanced: OpenAI API (Optional)</summary>
+            <div class="api-key-row">
+              <input type="password" id="api-key-input" class="api-key-input" placeholder="sk-... (optional)" />
+              <button class="btn btn-sm btn-primary" id="save-api-key">Save</button>
+              <button class="btn btn-sm btn-ghost" id="clear-api-key" title="Clear">X</button>
+            </div>
+            <div class="api-key-status" id="api-key-status"></div>
+          </details>
+          <div class="chat-input-container">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Ask me anything about DeFi..." />
+            <button class="btn btn-primary" id="chat-send">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app">
+      <!-- Top Navigation -->
+      <nav class="navbar">
+        <div class="nav-brand">
+          <div class="logo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
+              <path d="M10 16L16 10L22 16L16 22L10 16Z" fill="white" fill-opacity="0.9"/>
+              <path d="M16 12L20 16L16 20L12 16L16 12Z" fill="white"/>
+              <defs>
+                <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                  <stop stop-color="#6366F1"/>
+                  <stop offset="1" stop-color="#8B5CF6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="brand-text">Mini DeFi</span>
+          <span class="asset-count" id="asset-count">0 assets</span>
+        </div>
+        
+        <div class="nav-actions">
+          <button class="btn btn-ghost" id="chat-btn" title="AI Assistant">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span class="btn-text">AI Help</span>
+          </button>
+          
+          <button class="btn btn-ghost" id="help-btn" title="Help">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span class="btn-text">Help</span>
+          </button>
+          
+          <div class="network-badge" id="network-badge">
+            <span class="network-dot"></span>
+            <span class="network-name" id="network-name">Not Connected</span>
+          </div>
+          
+          <button class="btn btn-primary" id="connect-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="6" width="20" height="12" rx="2"/>
+              <path d="M22 10H2"/>
+            </svg>
+            <span>Connect Wallet</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="main-layout">
+        <!-- Left Sidebar - Asset Browser -->
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <h3>Asset Browser</h3>
+            <span class="badge" id="filtered-count">0</span>
+          </div>
+          
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="asset-search" placeholder="Search assets..." class="search-input" />
+          </div>
+          
+          <div class="filter-row">
+            <select id="category-filter" class="filter-select">
+              <option value="">All Categories</option>
+              <option value="USD">Stablecoins</option>
+              <option value="BTC">Bitcoin</option>
+              <option value="ETH">Ethereum</option>
+              <option value="ALT">DeFi Blue Chips</option>
+              <option value="DFI">DeFi Tokens</option>
+              <option value="L2">Layer 2</option>
+              <option value="MEME">Meme Coins</option>
+              <option value="RWA">Real World Assets</option>
+              <option value="AI">AI Tokens</option>
+              <option value="GAME">Gaming</option>
+            </select>
+          </div>
+          
+          <div class="asset-list" id="asset-list">
+            <div class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading assets...</p>
+            </div>
+          </div>
+          
+          <div class="sidebar-footer">
+            <button class="btn btn-secondary btn-sm btn-full" id="select-all-btn">Select All Visible</button>
+            <button class="btn btn-ghost btn-sm btn-full" id="clear-selection-btn">Clear Selection</button>
+          </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+          <!-- Status Toast -->
+          <div id="status-toast" class="toast" style="display: none;">
+            <span class="toast-icon"></span>
+            <span class="toast-message"></span>
+            <button class="toast-close">&times;</button>
+          </div>
+
+          <!-- Account Overview -->
+          <section class="section">
+            <div class="section-header">
+              <h2>Portfolio Overview</h2>
+              <button class="btn btn-secondary btn-sm" id="refresh-stats">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6M1 20v-6h6"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                <span>Refresh</span>
+              </button>
+            </div>
+            
+            <div class="overview-grid">
+              <div class="overview-card">
+                <div class="overview-label">Total Collateral</div>
+                <div class="overview-value" id="total-collateral">$0.00</div>
+              </div>
+              <div class="overview-card">
+                <div class="overview-label">Total Borrowed</div>
+                <div class="overview-value" id="total-borrowed">$0.00</div>
+              </div>
+              <div class="overview-card">
+                <div class="overview-label">Health Factor</div>
+                <div class="overview-value health-good" id="health-factor">-</div>
+              </div>
+              <div class="overview-card">
+                <div class="overview-label">Net Worth</div>
+                <div class="overview-value" id="net-worth">$0.00</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Selected Assets & Operations -->
+          <section class="section">
+            <div class="section-header">
+              <h2>Operation Panel</h2>
+              <div class="operation-tabs" id="operation-tabs">
+                <button class="tab-btn active" data-op="deposit">Deposit</button>
+                <button class="tab-btn" data-op="withdraw">Withdraw</button>
+                <button class="tab-btn" data-op="borrow">Borrow</button>
+                <button class="tab-btn" data-op="repay">Repay</button>
+                <button class="tab-btn" data-op="liquidate">Liquidate</button>
+              </div>
+            </div>
+
+            <div class="operation-panel">
+              <!-- Selected Assets -->
+              <div class="selected-assets-panel">
+                <div class="panel-header">
+                  <h4>Selected Assets</h4>
+                  <span class="selected-count" id="selected-count">0 selected</span>
+                </div>
+                
+                <div class="selected-assets-list" id="selected-assets-list">
+                  <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <path d="M12 8v8M8 12h8"/>
+                    </svg>
+                    <p>Click assets in the browser to add them here</p>
+                  </div>
+                </div>
+                
+                <div class="proportion-controls">
+                  <div class="proportion-header">
+                    <span>Total Allocation</span>
+                    <span class="allocation-total" id="allocation-total">0%</span>
+                  </div>
+                  <div class="proportion-bar">
+                    <div class="proportion-fill" id="proportion-fill" style="width: 0%"></div>
+                  </div>
+                  <div class="proportion-actions">
+                    <button class="btn btn-ghost btn-sm" id="equalize-btn">Equalize</button>
+                    <button class="btn btn-ghost btn-sm" id="reset-proportions-btn">Reset</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Operation Form -->
+              <div class="operation-form-panel">
+                <div class="operation-form" id="operation-form">
+                  <!-- Deposit Form -->
+                  <div class="form-section" id="form-deposit">
+                    <h4>Deposit Assets</h4>
+                    <p class="form-desc">Supply assets to earn interest. Your deposits are distributed across selected assets based on proportions.</p>
+                    <div class="form-group">
+                      <label>Total Amount (USD Value)</label>
+                      <div class="input-with-unit">
+                        <span class="unit">$</span>
+                        <input type="number" id="deposit-total" min="0" step="any" placeholder="0.00" class="form-input" />
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="execute-deposit">Execute Deposit</button>
+                  </div>
+
+                  <!-- Withdraw Form -->
+                  <div class="form-section" id="form-withdraw" style="display: none;">
+                    <h4>Withdraw Assets</h4>
+                    <p class="form-desc">Withdraw your supplied assets. Amount distributed based on proportions.</p>
+                    <div class="form-group">
+                      <label>Total Amount (USD Value)</label>
+                      <div class="input-with-unit">
+                        <span class="unit">$</span>
+                        <input type="number" id="withdraw-total" min="0" step="any" placeholder="0.00" class="form-input" />
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="execute-withdraw">Execute Withdraw</button>
+                  </div>
+
+                  <!-- Borrow Form -->
+                  <div class="form-section" id="form-borrow" style="display: none;">
+                    <h4>Borrow Assets</h4>
+                    <p class="form-desc">Borrow against your collateral. Distributed based on proportions.</p>
+                    <div class="form-group">
+                      <label>Total Amount (USD Value)</label>
+                      <div class="input-with-unit">
+                        <span class="unit">$</span>
+                        <input type="number" id="borrow-total" min="0" step="any" placeholder="0.00" class="form-input" />
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="execute-borrow">Execute Borrow</button>
+                  </div>
+
+                  <!-- Repay Form -->
+                  <div class="form-section" id="form-repay" style="display: none;">
+                    <h4>Repay Debt</h4>
+                    <p class="form-desc">Repay borrowed assets. Distributed based on proportions.</p>
+                    <div class="form-group">
+                      <label>Total Amount (USD Value)</label>
+                      <div class="input-with-unit">
+                        <span class="unit">$</span>
+                        <input type="number" id="repay-total" min="0" step="any" placeholder="0.00" class="form-input" />
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="execute-repay">Execute Repay</button>
+                  </div>
+
+                  <!-- Liquidate Form -->
+                  <div class="form-section" id="form-liquidate" style="display: none;">
+                    <h4>Liquidate Position</h4>
+                    <p class="form-desc">Liquidate undercollateralized positions. Select debt assets and collateral to seize.</p>
+                    <div class="form-group">
+                      <label>Borrower Address</label>
+                      <input type="text" id="liquidate-borrower" placeholder="0x..." class="form-input" />
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Debt Asset</label>
+                        <select id="liquidate-debt-asset" class="form-select"></select>
+                      </div>
+                      <div class="form-group">
+                        <label>Collateral Asset</label>
+                        <select id="liquidate-collateral-asset" class="form-select"></select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Repay Amount</label>
+                      <input type="number" id="liquidate-amount" min="0" step="any" placeholder="0.00" class="form-input" />
+                    </div>
+                    <button class="btn btn-warning btn-full" id="execute-liquidate">Execute Liquidation</button>
+                  </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="operation-preview" id="operation-preview">
+                  <h4>Transaction Preview</h4>
+                  <div class="preview-list" id="preview-list">
+                    <p class="muted">Select assets and enter an amount to preview</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Markets Table -->
+          <section class="section">
+            <div class="section-header">
+              <h2>Your Positions</h2>
+            </div>
+            <div class="markets-table-wrapper">
+              <table class="markets-table" id="positions-table">
+                <thead>
+                  <tr>
+                    <th>Asset</th>
+                    <th>Price</th>
+                    <th>Your Deposits</th>
+                    <th>Your Debt</th>
+                    <th>Collateral Factor</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="positions-tbody">
+                  <tr class="empty-row">
+                    <td colspan="6">Connect wallet to view positions</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>Mini DeFi Lending Platform &middot; Multi-Asset Support &middot; Built with Solidity &amp; Hardhat</p>
+      </footer>
+    </div>
+
+    <!-- Display Settings (Inline in top-right corner) -->
+    <div class="display-settings-inline" id="display-settings-inline">
+      <!-- Day/Night Sliding Toggle -->
+      <div class="theme-mode-toggle" id="theme-mode-toggle">
+        <button class="theme-mode-btn active" id="theme-day" data-theme="day" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <circle cx="12" cy="12" r="5"/>
+            <g stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </g>
+          </svg>
+          DAY
+        </button>
+        <button class="theme-mode-btn" id="theme-night" data-theme="night" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          NIGHT
+        </button>
+      </div>
+      
+      <!-- Contrast Slider -->
+      <div class="contrast-control-inline">
+        <span class="contrast-label-text">Contrast</span>
+        <input 
+          type="range" 
+          class="contrast-slider" 
+          id="contrast-slider" 
+          min="0" 
+          max="3" 
+          value="1" 
+          step="1"
+        />
+        <span class="contrast-value" id="contrast-value">Medium</span>
+      </div>
+    </div>
+
+    <!-- Load ethers.js with CDN fallback -->
+    <script>
+      (function loadEthersThenApp() {
+        const cdns = [
+          'https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js',
+          'https://unpkg.com/ethers@6.9.0/dist/ethers.umd.min.js'
+        ];
+
+        function loadScript(src) {
+          return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = () => resolve(src);
+            s.onerror = () => reject(new Error('Failed to load ' + src));
+            document.head.appendChild(s);
+          });
+        }
+
+        (async () => {
+          let loaded = false;
+          for (const url of cdns) {
+            try {
+              await loadScript(url);
+              console.log('Loaded ethers from', url);
+              loaded = true;
+              break;
+            } catch (e) {
+              console.warn(e.message);
+            }
+          }
+
+          if (!loaded) {
+            console.error('Could not load ethers.js from CDN');
+          }
+
+          const app = document.createElement('script');
+          app.src = 'app.js';
+          document.head.appendChild(app);
+        })();
+      })();
+    </script>
+  </body>
+</html>
